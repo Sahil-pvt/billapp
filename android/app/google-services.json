@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1056070172715",
+    "project_id": "billapp-ecba4",
+    "storage_bucket": "billapp-ecba4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1056070172715:android:a9684a5a69310191436a6e",
+        "android_client_info": {
+          "package_name": "com.example.billapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzG2bNoAA04bZ77wRWr9tKYaWIo9iPc1o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
