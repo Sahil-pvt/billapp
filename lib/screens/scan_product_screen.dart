@@ -12,6 +12,8 @@ class ScanProductScreen extends StatefulWidget {
 }
 
 class _ScanProductScreenState extends State<ScanProductScreen> {
+  bool _isLoading = false;
+
   void _scanBarcode() async {
     var result = await Navigator.push(
       context,
@@ -24,11 +26,19 @@ class _ScanProductScreenState extends State<ScanProductScreen> {
   }
 
   void _fetchProduct(String barcode) async {
+    setState(() {
+      _isLoading = true;
+    });
+
     QuerySnapshot query =
         await FirebaseFirestore.instance
             .collection('products')
             .where('barcode', isEqualTo: barcode)
             .get();
+
+    setState(() {
+      _isLoading = false;
+    });
 
     if (query.docs.isNotEmpty) {
       Map<String, dynamic> productData =
@@ -36,24 +46,64 @@ class _ScanProductScreenState extends State<ScanProductScreen> {
       widget.addToCart(productData);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Added to Cart: ${productData['name']}")),
+        SnackBar(
+          content: Text("✅ Added to Cart: ${productData['name']}"),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
       );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Product Not Found!")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("❌ Product Not Found!"),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Scan Product")),
+      appBar: AppBar(
+        title: Text("Scan Product"),
+        backgroundColor: Colors.deepPurple,
+      ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: _scanBarcode,
-          child: Text("Scan Product"),
-        ),
+        child:
+            _isLoading
+                ? CircularProgressIndicator() // Show a loading indicator when fetching data
+                : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.qr_code_scanner,
+                      size: 120,
+                      color: Colors.deepPurple,
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: _scanBarcode,
+                      icon: Icon(Icons.camera_alt, size: 24),
+                      label: Text(
+                        "Scan Product",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: Colors.deepPurple,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
       ),
     );
   }
