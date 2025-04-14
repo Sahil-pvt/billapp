@@ -38,14 +38,26 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    String message = "🛒 *Order Summary:*\n";
-    for (var item in cart) {
-      message += "📌 ${item['name']} - ₹${item['price']}\n";
-    }
-    message += "\n💰 *Total: ₹${total.toStringAsFixed(2)}*";
+    double totalAmount = total;
+    String gpayLink =
+        "upi://pay?pa=bhaveshromina2004@okaxis&cu=INR&am=$totalAmount";
 
-    String encodedMessage = Uri.encodeComponent(message);
-    String url = "https://wa.me/?text=$encodedMessage"; // WhatsApp Web link
+    // First message: Order summary without link
+    String message1 = """
+🛒 *Order Summary:*
+${cart.map((item) => "📌 ${item['name']} - ₹${item['price']}").join("\n")}
+
+💰 *Total: ₹${totalAmount.toStringAsFixed(2)}*
+
+✅ Tap the link below to pay via Google Pay.
+""";
+
+    // Second message: only GPay link (will appear as preview below)
+    String encodedMessage1 = Uri.encodeComponent(message1);
+    String encodedMessage2 = Uri.encodeComponent(gpayLink);
+
+    // Combine the two messages
+    String url = "https://wa.me/?text=$encodedMessage1%0A$encodedMessage2";
 
     Uri uri = Uri.parse(url);
 

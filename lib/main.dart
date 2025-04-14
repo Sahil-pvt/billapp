@@ -1,8 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
 
@@ -13,17 +15,40 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final Future<FirebaseApp> _firebaseInit = Firebase.initializeApp();
-  final TextEditingController _titleController = TextEditingController(
-    text: "Product Scanner",
-  );
+  TextEditingController _titleController = TextEditingController();
+  String appTitle = "Billing App"; // Default
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTitle();
+  }
+
+  Future<void> _loadTitle() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedTitle = prefs.getString('appTitle');
+    setState(() {
+      appTitle = savedTitle ?? appTitle;
+      _titleController = TextEditingController(text: appTitle);
+    });
+  }
+
+  Future<void> _saveTitle(String newTitle) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('appTitle', newTitle);
+    setState(() {
+      appTitle = newTitle;
+      _titleController.text = newTitle;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: _titleController.text, // Dynamic title
+      title: appTitle,
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: FutureBuilder<FirebaseApp>(
+      home: FutureBuilder(
         future: _firebaseInit,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -32,34 +57,12 @@ class _MyAppState extends State<MyApp> {
             );
           } else if (snapshot.hasError) {
             return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error, color: Colors.red, size: 50),
-                    const SizedBox(height: 10),
-                    Text(
-                      "⚠️ Firebase Init Failed:\n${snapshot.error}",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16, color: Colors.red),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () => main(), // Restart app
-                      child: const Text("Retry"),
-                    ),
-                  ],
-                ),
-              ),
+              body: Center(child: Text("Error: ${snapshot.error}")),
             );
           }
           return HomeScreen(
             titleController: _titleController,
-            onTitleChange: (newTitle) {
-              setState(() {
-                _titleController.text = newTitle;
-              });
-            },
+            onTitleChange: _saveTitle,
           );
         },
       ),
